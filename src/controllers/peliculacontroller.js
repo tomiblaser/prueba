@@ -23,6 +23,15 @@ router.get('/:id', async (req, res) => {
   return res.status(200).json(pelicula);
 });
 
+router.get('/:titulo', async (req, res) => {
+  console.log(`Request URL Param: ${req.params.titulo}`);
+  console.log(`This is a get operation`);
+
+  const pelicula = await peliculaService.getMovieByTitulo(req.params.titulo);
+
+  return res.status(200).json(pelicula);
+});
+
 router.post('', async (req, res) => {
   console.log(`This is a post operation`);
   if(req.body.Calificacion>5 || req.body.Calificacion<1){

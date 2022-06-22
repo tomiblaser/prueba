@@ -1,30 +1,18 @@
 import sql from 'mssql'
 import config from '../../db.js'
 import 'dotenv/config'
+import { request } from 'express';
 
 const peliculaTabla=process.env.DB_TABLA_PELICULA;
 
 export class PeliculaService {
     
-    getAllMovies = async (Titulo, Orden) => {
+    getAllMovies = async () => {
         console.log('This is a function on the service');
         const pool = await sql.connect(config);
-        let response = 0;
+        const response = await pool.request()
+            .query(`SELECT * FROM ${peliculaTabla}`)
 
-        if(Orden){
-            response = await pool.request()
-                .query(`SELECT IdPelicula, ImagenPelicula, Titulo, FechaCreacion 
-                        FROM ${peliculaTabla}
-                        ORDER BY FechaCreacion ${Orden}`);
-        }
-        else if(Titulo){
-             response = await pool.request()
-                .input('Titulo',sql.VarChar, Titulo)
-                .query(`SELECT IdPelicula, ImagenPelicula, Titulo, FechaCreacion 
-                        FROM ${peliculaTabla} 
-                        WHERE Titulo=@Titulo`);
-        }
-        
         console.log(response)
         return response.recordset;
     }
@@ -35,13 +23,18 @@ export class PeliculaService {
         const pool = await sql.connect(config);
         const response = await pool.request()
                 .input('id',sql.Int, id)
-                .query(`SELECT p.* FROM ${peliculaTabla} m, ${personajeTabla} p, ${personajeXPeliculaTabla} pp WHERE p.idPersonaje = pp.idPersonaje and m.idPelicula = pp.idPelicula and m.idPelicula=@id`);
-        let helper = await pool.request()
-                .input('id',sql.Int, id)
-                .query(`SELECT m.* FROM ${peliculaTabla} m WHERE m.idPelicula=@id`);
+                .query(`SELECT * FROM ${peliculaTabla} WHERE idPelicula=@id`);
+        return response.recordset[0];
+    }
 
-        helper.recordset[0].personajes=response.recordset;
-        return helper.recordset[0];
+    getMovieByTitulo = async (titulo) => {
+        console.log('This is a function on the service');
+
+        const pool = await sql.connect(config);
+        const response = await pool.request()
+                .input('id',sql.VarChar, titulo)
+                .query(`SELECT * FROM ${peliculaTabla} WHERE TituloPelicula=@titulo`);
+        return response.recordset[0];
     }
 
     createMovie = async (pelicula) => {
